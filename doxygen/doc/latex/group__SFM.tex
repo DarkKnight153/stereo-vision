@@ -1,0 +1,168 @@
+\section{S\+F\+M}
+\label{group__SFM}\index{S\+F\+M@{S\+F\+M}}
+
+
+Structure From Motion (S\+F\+M) module for estimation of estrinsics parameter and computation of depth map.  
+
+
+Structure From Motion (S\+F\+M) module for estimation of estrinsics parameter and computation of depth map. 
+
+Copyright (C) 2015 Robot\+Cub Consortium
+
+Author\+: Sean Ryan Fanello, Giulia Pasquale
+
+Date\+: first release around 24/07/2013
+
+Copy\+Policy\+: Released under the terms of the G\+N\+U G\+P\+L v2.\+0.\hypertarget{group__SFM_intro_sec}{}\subsection{Description}\label{group__SFM_intro_sec}
+The module uses a complete Structure From Motion (S\+F\+M) pipeline for the computation of the extrinsics parameters between two different views. These parameters are then used to rectify the images and to compute a depth map using either the H. Hirschmuller Algorithm (C\+V\+P\+R 2006), implemented since Opencv 2.\+2, or \href{http://www.cvlibs.net/software/libelas/}{\tt L\+I\+B\+E\+L\+A\+S (Library for Efficient Large-\/scale Stereo Matching)}. The Kinematics of the i\+Cub is used to guess the current camera positions, then visual features are used to refine this model. Before starting, make sure you have calibrated the intrinsics parameters. For the stereo calibration see the module \href{http://wiki.icub.org/iCub/main/dox/html/group__icub__stereoCalib.html}{\tt stereo\+Calib}. This module provides five output ports\+: the first one is the disparity map in grayscale values, the second port is the World\+Image, that is a 3-\/channels float image, where in each pixel are stored the three X Y Z coordinates with respect to robot root reference frame. The third port outputs the current keypoints match. Non valid points are handled with the special value (0,0,0). The last two ports output the rectified images used to compute the horizontal disparity map. In addition, a rpc port supports requests for 3\+D/2\+D points computation (see below).\hypertarget{group__SFM_lib_sec}{}\subsection{Libraries}\label{group__SFM_lib_sec}
+Y\+A\+R\+P libraries and Open\+C\+V 2.\+4 (at least). ~\newline
+For better performance, we suggest you to run the module on a machine equipped with G\+P\+U functionality along with the \href{http://cs.unc.edu/~ccwu/siftgpu}{\tt Sift\+G\+P\+U} library installed. This module now uses \href{http://www.cvlibs.net/software/libelas/}{\tt L\+I\+B\+E\+L\+A\+S } by default to compute the horizontal disparity map from the rectified left and right images. The source code of L\+I\+B\+E\+L\+A\+S is compiled with the stereo\+Vision\+Lib (with no particular dependences). The Open\+M\+P accelerated version of the L\+I\+B\+E\+L\+A\+S is used under U\+N\+I\+X systems, if Open\+M\+P is available.\hypertarget{group__SFM_parameters_sec}{}\subsection{Parameters}\label{group__SFM_parameters_sec}
+--name {\itshape S\+F\+M} 
+\begin{DoxyItemize}
+\item The parameter {\itshape stem\+Name} specifies the stem name of ports created by the module.
+\end{DoxyItemize}
+
+--robot {\itshape robot\+Name} 
+\begin{DoxyItemize}
+\item The parameter {\itshape robot\+Name} specifies the name of the robot.
+\end{DoxyItemize}
+
+--left\+Port {\itshape /left}\+:i
+\begin{DoxyItemize}
+\item The parameter {\itshape input\+Left} specifies the left image input port.
+\end{DoxyItemize}
+
+--right\+Port {\itshape /right}\+:i
+\begin{DoxyItemize}
+\item The parameter {\itshape input\+Right} specifies the right image input port.
+\end{DoxyItemize}
+
+--out\+Left\+Rect\+Img\+Port {\itshape /rect\+\_\+left}\+:o
+\begin{DoxyItemize}
+\item Specifies the left rectified image output port.
+\end{DoxyItemize}
+
+--out\+Right\+Rect\+Img\+Port {\itshape /rect\+\_\+right}\+:o
+\begin{DoxyItemize}
+\item Specifies the right rectified image output port.
+\end{DoxyItemize}
+
+--out\+Disp\+Port {\itshape /disp}\+:o
+\begin{DoxyItemize}
+\item The parameter {\itshape /disparity}\+:o specifies the output port for the disparity image.
+\end{DoxyItemize}
+
+--out\+Match\+Port {\itshape /match}\+:o
+\begin{DoxyItemize}
+\item The parameter {\itshape /match}\+:o specifies the output port for the match image.
+\end{DoxyItemize}
+
+--out\+World\+Port {\itshape /world}\+:o
+\begin{DoxyItemize}
+\item The parameter {\itshape /world}\+:o specifies the output port for the world image.
+\end{DoxyItemize}
+
+--Command\+Port {\itshape comm} 
+\begin{DoxyItemize}
+\item The parameter {\itshape comm} specifies the command port for rpc protocol.
+\end{DoxyItemize}
+
+--use\+\_\+sgbm
+\begin{DoxyItemize}
+\item By default L\+I\+B\+E\+L\+A\+S is used to compute the disparity. However, if you prefer to continue using the Open\+C\+V\textquotesingle{}s S\+G\+B\+M algorithm, you just need to pass the parameter {\itshape use\+\_\+sgbm}.
+\end{DoxyItemize}
+
+If you use L\+I\+B\+E\+L\+A\+S, there is the possibility of setting the following parameters\+:
+
+--disp\+\_\+scaling\+\_\+factor {\itshape 1.\+0} 
+\begin{DoxyItemize}
+\item This parameter provides the option of resizing the left and right images before computing the disparity map (and finally resize again the resulting map to the original size). It is a multiplicative factor. For example, if a low-\/resolution (also less accurate!) disparity map is sufficient, but needed at high rate, you can set this parameter to 1/\+N so that the images width and height are divided by a factor N, L\+I\+B\+E\+L\+A\+S computes the disparity of the downsampled images, and finally the disparity map\textquotesingle{}s size is rescaled by N before returning.
+\end{DoxyItemize}
+
+--elas\+\_\+setting {\itshape R\+O\+B\+O\+T\+I\+C\+S} 
+\begin{DoxyItemize}
+\item The parameter {\itshape R\+O\+B\+O\+T\+I\+C\+S} or {\itshape M\+I\+D\+D\+L\+E\+B\+U\+R\+Y} allow to choose between the two settings of parameters defined in \href{https://github.com/robotology/stereo-vision/tree/master/lib/elas/include/elas.h}{\tt elas.\+h}. This module gives the possibility of modifying (eventually tuning to individual needs) those parameters which differ between the two settings, plus a couple of others ({\itshape elas\+\_\+subsampling} and {\itshape elas\+\_\+add\+\_\+corners}). The remaining parameters are supposed to be fixed to the values proposed by the authors of L\+I\+B\+E\+L\+A\+S.
+\end{DoxyItemize}
+
+Here we list those L\+I\+B\+E\+L\+A\+S parameters that can be passed to this module; see \href{https://github.com/robotology/stereo-vision/tree/master/lib/elas/include/elas.h}{\tt elas.\+h} for the complete list of parameters, their definitions and default values.
+
+--elas\+\_\+subsampling
+\begin{DoxyItemize}
+\item Pass the parameter {\itshape elas\+\_\+subsampling} if you want to set the {\itshape subsampling} parameter to {\itshape true} in \href{https://github.com/robotology/stereo-vision/tree/master/lib/elas/include/elas.h}{\tt elas.\+h}, to speedup the computation (at the expenses of accuracy).
+\end{DoxyItemize}
+
+--elas\+\_\+add\+\_\+corners
+\begin{DoxyItemize}
+\item Pass the parameter {\itshape elas\+\_\+add\+\_\+corners} if you want to set {\itshape add\+\_\+corners} parameter to {\itshape true} in \href{https://github.com/robotology/stereo-vision/tree/master/lib/elas/include/elas.h}{\tt elas.\+h}, to consider also the image corners in the computation of the disparity map.
+\end{DoxyItemize}
+
+--elas\+\_\+ipol\+\_\+gap\+\_\+width {\itshape 40} 
+\begin{DoxyItemize}
+\item This is the only parameter for which we set a default value different from the ones provided in \href{https://github.com/robotology/stereo-vision/tree/master/lib/elas/include/elas.h}{\tt elas.\+h}, where the {\itshape ipol\+\_\+gap\+\_\+width} parameter is set to {\itshape 3} in {\itshape R\+O\+B\+O\+T\+I\+C\+S} and {\itshape 5000} in {\itshape M\+I\+D\+D\+L\+E\+B\+U\+R\+Y}. It is the radius of interpolation (in pixel) of the disparity values found in the keypoints. Small values result in sparser disparity maps (with more black holes); high values result in denser maps, with the black regions filled with interpolated values.
+\end{DoxyItemize}
+
+Also the following L\+I\+B\+E\+L\+A\+S parameters can be modified by the user, however we stick with the values provided by the authors.
+
+--elas\+\_\+support\+\_\+threshold {\itshape 0.\+85} 
+\begin{DoxyItemize}
+\item This is the {\itshape support\+\_\+threshold} parameter in \href{https://github.com/robotology/stereo-vision/tree/master/lib/elas/include/elas.h}{\tt elas.\+h}, set to 0.\+95 in {\itshape M\+I\+D\+D\+L\+E\+B\+U\+R\+Y} and 0.\+85 in {\itshape R\+O\+B\+O\+T\+I\+C\+S}.
+\end{DoxyItemize}
+
+--elas\+\_\+gamma {\itshape 3} 
+\begin{DoxyItemize}
+\item This is the {\itshape gamma} parameter in \href{https://github.com/robotology/stereo-vision/tree/master/lib/elas/include/elas.h}{\tt elas.\+h}, set to 5 in {\itshape M\+I\+D\+D\+L\+E\+B\+U\+R\+Y} and 3 in {\itshape R\+O\+B\+O\+T\+I\+C\+S}.
+\end{DoxyItemize}
+
+--elas\+\_\+sradius {\itshape 2} 
+\begin{DoxyItemize}
+\item This is the {\itshape sradius} parameter in \href{https://github.com/robotology/stereo-vision/tree/master/lib/elas/include/elas.h}{\tt elas.\+h}, set to 3 in {\itshape M\+I\+D\+D\+L\+E\+B\+U\+R\+Y} and 2 in {\itshape R\+O\+B\+O\+T\+I\+C\+S}.
+\end{DoxyItemize}
+
+--elas\+\_\+match\+\_\+texture {\itshape true} 
+\begin{DoxyItemize}
+\item This is the {\itshape match\+\_\+texture} parameter in \href{https://github.com/robotology/stereo-vision/tree/master/lib/elas/include/elas.h}{\tt elas.\+h}, set to {\itshape false} in {\itshape M\+I\+D\+D\+L\+E\+B\+U\+R\+Y} and {\itshape true} in {\itshape R\+O\+B\+O\+T\+I\+C\+S}.
+\end{DoxyItemize}
+
+--elas\+\_\+filter\+\_\+median {\itshape false} 
+\begin{DoxyItemize}
+\item This is the {\itshape filter\+\_\+median} parameter in \href{https://github.com/robotology/stereo-vision/tree/master/lib/elas/include/elas.h}{\tt elas.\+h}, set to {\itshape true} in {\itshape M\+I\+D\+D\+L\+E\+B\+U\+R\+Y} and {\itshape false} in {\itshape R\+O\+B\+O\+T\+I\+C\+S}.
+\end{DoxyItemize}
+
+--elas\+\_\+filter\+\_\+adaptive\+\_\+mean {\itshape true} 
+\begin{DoxyItemize}
+\item This is the {\itshape filter\+\_\+adaptive\+\_\+mean} parameter in \href{https://github.com/robotology/stereo-vision/tree/master/lib/elas/include/elas.h}{\tt elas.\+h}, set to {\itshape false} in {\itshape M\+I\+D\+D\+L\+E\+B\+U\+R\+Y} and {\itshape true} in {\itshape R\+O\+B\+O\+T\+I\+C\+S}.
+\end{DoxyItemize}\hypertarget{group__SFM_portsc_sec}{}\subsection{Ports Created}\label{group__SFM_portsc_sec}
+
+\begin{DoxyItemize}
+\item {\itshape  /\+S\+F\+M/left\+:i } accepts the incoming images from the left eye.
+\item {\itshape  /\+S\+F\+M/right\+:i } accepts the incoming images from the right eye.
+\item {\itshape  /\+S\+F\+M/disp\+:o } outputs the disparity map in grayscale values.
+\item {\itshape  /\+S\+F\+M/world\+:o} outputs the world image (3-\/channel float with X Y Z values).
+\item {\itshape  /\+S\+F\+M/match\+:o} outputs the match image.
+\item {\itshape  /\+S\+F\+M/rect\+\_\+left\+:o} outputs the rectified left image.
+\item {\itshape  /\+S\+F\+M/rect\+\_\+right\+:o} outputs the rectified right image.
+\item {\itshape  /\+S\+F\+M/rpc } for terminal commands communication.
+\begin{DoxyItemize}
+\item \mbox{[}calibrate\mbox{]}\+: It recomputes the camera positions once.
+\item \mbox{[}save\mbox{]}\+: It saves the current camera positions and uses it when the module starts.
+\item \mbox{[}get\+H\mbox{]}\+: It returns the calibrated stereo matrix.
+\item \mbox{[}set\+Num\+Disp Num\+Of\+Disparities\mbox{]}\+: It sets the expected number of disparity (in pixel). Values must be divisible by 32. Good values are 64 for 320x240 images and 128 for 640x480 images.
+\item \mbox{[}Point x y\mbox{]}\+: Given the pixel coordinate x,y in the Left image the response is the 3\+D Point\+: X Y Z computed using the depth map wrt the L\+E\+F\+T eye. Points with non valid disparity (i.\+e. occlusions) are handled with the value (0.\+0,0.\+0,0.\+0).
+\item \mbox{[}x y\mbox{]}\+: Given the pixel coordinate x,y in the Left image the response is the 3\+D Point\+: X Y Z ur vr computed using the depth map wrt the the R\+O\+O\+T reference system; (ur vr) is the corresponding pixel in the Right image. Points with non valid disparity (i.\+e. occlusions) are handled with the value (0.\+0,0.\+0,0.\+0).
+\item \mbox{[}Left x y\mbox{]}\+: Given the pixel coordinate x,y in the Left image the response is the 3\+D Point\+: X Y Z computed using the depth map wrt the L\+E\+F\+T eye. Points with non valid disparity (i.\+e. occlusions) are handled with the value (0.\+0,0.\+0,0.\+0).
+\item \mbox{[}Right x y\mbox{]}\+: Given the pixel coordinate x,y in the Left image the response is the 3\+D Point\+: X Y Z computed using the depth map wrt the R\+I\+G\+H\+T eye. Points with non valid disparity (i.\+e. occlusions) are handled with the value (0.\+0,0.\+0,0.\+0).
+\item \mbox{[}Root x y\mbox{]}\+: Given the pixel coordinate x,y in the Left image the response is the 3\+D Point\+: X Y Z computed using the depth map wrt the R\+O\+O\+T reference system. Points with non valid disparity (i.\+e. occlusions) are handled with the value (0.\+0,0.\+0,0.\+0).
+\item \mbox{[}Rect tlx tly w h step\mbox{]}\+: Given the pixels in the rectangle defined by \{(tlx,tly) (tlx+w,tly+h)\} (parsed by columns), the response contains the corresponding 3\+D points in the R\+O\+O\+T frame. The optional parameter step defines the sampling quantum; by default step=1.
+\item \mbox{[}Points u\+\_\+1 v\+\_\+1 ... u\+\_\+n v\+\_\+n\mbox{]}\+: Given a list of n pixels, the response contains the corresponding 3\+D points in the R\+O\+O\+T frame.
+\item \mbox{[}Flood3\+D x y dist\mbox{]}\+: Perform 3\+D flood-\/fill on the seed point (x,y), returning the following info\+: \mbox{[}u\+\_\+1 v\+\_\+1 x\+\_\+1 y\+\_\+1 z\+\_\+1 ...\mbox{]}. The optional parameter dist expressed in meters regulates the fill (by default = 0.\+004).
+\item \mbox{[}u\+L\+\_\+1 v\+L\+\_\+1 u\+R\+\_\+1 v\+R\+\_\+1 ... u\+L\+\_\+n v\+L\+\_\+n u\+R\+\_\+n v\+R\+\_\+n\mbox{]}\+: Given n quadruples u\+L\+\_\+i v\+L\+\_\+i u\+R\+\_\+i v\+R\+\_\+i, where u\+L\+\_\+i v\+L\+\_\+i are the pixel coordinates in the Left image and u\+R\+\_\+i v\+R\+\_\+i are the coordinates of the matched pixel in the Right image, the response is a set of 3\+D points (X1 Y1 Z1 ... Xn Yn Zn) wrt the R\+O\+O\+T reference system.
+\item \mbox{[}cart2stereo X Y Z\mbox{]}\+: Given a world point X Y Z wrt to R\+O\+O\+T reference frame the response is the projection (u\+L v\+L u\+R v\+R) in the Left and Right images.
+\end{DoxyItemize}
+\end{DoxyItemize}\hypertarget{group__SFM_in_files_sec}{}\subsection{Input Data Files}\label{group__SFM_in_files_sec}
+None.\hypertarget{group__SFM_out_data_sec}{}\subsection{Output Data Files}\label{group__SFM_out_data_sec}
+None.\hypertarget{group__SFM_tested_os_sec}{}\subsection{Tested O\+S}\label{group__SFM_tested_os_sec}
+Linux (Ubuntu 9.\+04, Debian Squeeze) and Windows 7. Tested against Open\+C\+V versions\+: 2.\+4.
+
+\begin{DoxyAuthor}{Author}
+Sean Ryan Fanello, Giulia Pasquale 
+\end{DoxyAuthor}
